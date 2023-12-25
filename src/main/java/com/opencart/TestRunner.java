@@ -1,6 +1,8 @@
 package com.opencart;
 
+import com.opencart.managers.DataFakerManager;
 import com.opencart.managers.DriverManager;
+import com.opencart.pageobjects.*;
 import org.openqa.selenium.*;
 
 
@@ -8,54 +10,29 @@ public class TestRunner {
     public static void main(String[] args) throws InterruptedException {
         WebDriver driver = DriverManager.getInstance().getDriver();
 
-        driver.get("https://demo.opencart.com/");
+        driver.get("https://opencart.lab01.tech-yard.club/en-gb?route=common/home");
 
-        String currentWindowName = driver.getWindowHandle();
+        HomePage homePage = new HomePage(driver);
+        homePage.navigateToRegisterPageFromHeaderMenu();
 
-        driver.switchTo().newWindow(WindowType.TAB);
+        String firstName = DataFakerManager.getRandomName();
+        String lastName = DataFakerManager.getRandomName();
+        String randomEmail = DataFakerManager.getRandomEmail();
+        String password = DataFakerManager.getRandomPassword(5, 9);
 
-        driver.get("https://demo.opencart.com/");
-
-        WebElement accountIcon = driver.findElement(By.xpath("//i[@class='fas fa-user']"));
-        accountIcon.click();
-
-        WebElement registerBtn = driver.findElement(By.xpath("//a[@class='dropdown-item'][normalize-space()='Register']"));
-        registerBtn.click();
-
-        WebElement firstNameInput = driver.findElement(By.id("input-firstname"));
-        firstNameInput.sendKeys("Olesea");
-
-        WebElement lastNameInput = driver.findElement(By.id("input-lastname"));
-        lastNameInput.sendKeys("Rusnac");
-
-        WebElement emailInput = driver.findElement(By.id("input-email"));
-        emailInput.sendKeys("olesea@gmail.com");
-
-        WebElement passwordInput = driver.findElement(By.id("input-password"));
-        passwordInput.sendKeys("12345qwert!");
-
+        RegisterPage registerPage = new RegisterPage(driver);
+        registerPage.fillInTheRegisterForm(firstName, lastName, randomEmail, password);
+        registerPage.switchOnThePrivacyCheckbox(driver);
+        registerPage.clickOnContinueButton();
         Thread.sleep(2000);
+        System.out.println(driver.getCurrentUrl());
 
-        WebElement privacyCheckbox = driver.findElement(By.cssSelector("input[value='1'][name='agree']"));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", privacyCheckbox);
-        Thread.sleep(1000);
-
-        privacyCheckbox.click();
-
-        WebElement continueBtn = driver.findElement(By.xpath("//button[normalize-space()='Continue']"));
-        continueBtn.click();
-
-        Thread.sleep(5000);
+        AccountCreatedPage accountCreatedPage = new AccountCreatedPage(driver);
+        accountCreatedPage.logOutFromTheAccount();
+        Thread.sleep(2000);
         System.out.println(driver.getCurrentUrl());
 
         driver.close();
-
-        driver.switchTo().window(currentWindowName);
-
-        driver.get("https://demo.opencart.com/");
-
-        driver.quit();
-
         System.out.println("The execution was finished!");
     }
 }
